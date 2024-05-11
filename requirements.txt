@@ -1,3 +1,2 @@
-Fastapi
-SQLAlchemy
-pytest
+django>=4.2,<4.3
+djangorestframework
