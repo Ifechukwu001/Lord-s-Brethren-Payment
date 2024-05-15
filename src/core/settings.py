@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "dj_rest_auth.registration",
     "corsheaders",
     "drf_spectacular",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 SITE_ID = 1
@@ -148,6 +149,14 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+REST_AUTH = {
+    "REGISTER_SERIALIZER": "register.serializers.RegisterSerializer",
+    "LOGIN_SERIALIZER": "accounts.serializers.LoginSerializer",
+    "JWT_SERIALIZER": "accounts.serializers.JWTSerializer",
+    "JWT_AUTH_HTTPONLY": False,
+    "USE_JWT": True,
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
