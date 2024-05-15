@@ -10,7 +10,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="swagger-ui", permanent=False)),
-    path("api/", include("accounts.urls")),
+    path("api/auth/", include("accounts.urls")),
     path("api/", include("register.urls")),
     path("admin/", admin.site.urls),
 ]
