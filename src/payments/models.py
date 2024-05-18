@@ -20,7 +20,7 @@ class Transaction(models.Model):
     def generate_payment_link(self, title):
         headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
         data = {
-            "tx_ref": str(self.reference),
+            "tx_ref": f"Church_{str(self.reference)}",
             "amount": float(self.amount),
             "currency": self.currency,
             "redirect_url": config("PAYMENT_REDIRECT_URL"),
