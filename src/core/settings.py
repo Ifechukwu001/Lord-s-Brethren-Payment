@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Local apps
     "accounts",
     "register",
+    "payments",
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
