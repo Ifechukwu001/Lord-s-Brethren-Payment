@@ -1,10 +1,13 @@
+from decimal import Decimal
 from rest_framework import serializers
 
 from .models import Transaction
 
 
 class TransactionSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=Decimal("1.00")
+    )
     currency = serializers.CharField(max_length=3, default="NGN")
     email = serializers.EmailField()
     for_ticket = serializers.BooleanField(default=False)
