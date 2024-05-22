@@ -73,8 +73,6 @@ class TransactionWebHook(generics.GenericAPIView):
         response = requests.get(url, headers=headers)
         response_data = response.json()
 
-        print(response_data)
-
         if response_data.get("status") == "success":
             tx_ref = response_data.get("data").get("tx_ref").split("_")[1]
             amount = response_data.get("data").get("amount")

@@ -9,8 +9,6 @@ payment_queue = queue.Queue()
 def process_payment():
     while True:
         transaction = payment_queue.get()
-        print("=" * 50)
-        print(transaction)
         trans_object = Transaction.objects.get(reference=transaction.get("tx_ref"))
 
         if trans_object and not trans_object.is_success:
