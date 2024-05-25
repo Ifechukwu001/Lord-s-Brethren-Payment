@@ -10,7 +10,6 @@ class TransactionSerializer(serializers.Serializer):
     )
     currency = serializers.CharField(max_length=3, default="NGN")
     email = serializers.EmailField()
-    for_ticket = serializers.BooleanField(default=False)
 
     def validate_currency(self, value):
         return value.upper()
@@ -28,13 +27,11 @@ class TransactionSerializer(serializers.Serializer):
         email = validated_data.get("email")
         amount = validated_data.get("amount")
         currency = validated_data.get("currency", "NGN")
-        for_ticket = validated_data.get("for_ticket", False)
         transaction = Transaction.objects.filter(
             email=email,
             is_success=False,
             amount=amount,
             currency=currency,
-            for_ticket=for_ticket,
         )
         if transaction.exists():
             return transaction.first()
