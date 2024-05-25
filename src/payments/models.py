@@ -11,7 +11,6 @@ class Transaction(models.Model):
     currency = models.CharField(max_length=3)
     reference = models.UUIDField(default=uuid4, editable=False, unique=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    for_ticket = models.BooleanField(default=False)
     is_success = models.BooleanField(default=False)
 
     def __str__(self):
