@@ -14,14 +14,6 @@ class TransactionSerializer(serializers.Serializer):
     def validate_currency(self, value):
         return value.upper()
 
-    def validate_for_ticket(self, value):
-        if value:
-            if not self.context["request"].user.is_authenticated:
-                raise serializers.ValidationError(
-                    "You must be logged in to pay for a ticket"
-                )
-        return value
-
     def create(self):
         validated_data = self.validated_data
         email = validated_data.get("email")
