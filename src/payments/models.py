@@ -28,7 +28,7 @@ class Transaction(models.Model):
                 "email": self.email,
             },
             "customizations": {
-                "title": "Payment for services",
+                "title": title,
                 "logo": config("LOGO_URL"),
             },
         }
