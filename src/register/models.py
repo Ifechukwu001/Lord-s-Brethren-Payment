@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 from payments.models import Transaction
 
@@ -28,7 +29,7 @@ class Participant(models.Model):
 
     firstname = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15)
     gender = models.CharField(max_length=2, choices=Gender.choices, default=Gender.MALE)
     birthdate = models.DateField()
