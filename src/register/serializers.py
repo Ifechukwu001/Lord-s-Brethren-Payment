@@ -6,13 +6,20 @@ from dj_rest_auth.registration.serializers import (
 from .models import Participant
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(DJRegisterSerializer, serializers.ModelSerializer):
+    username = None
+    password1 = None
+    password2 = None
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = Participant
         fields = [
             "firstname",
             "lastname",
             "email",
+            "password",
             "phone",
             "gender",
             "birthdate",
@@ -26,6 +33,30 @@ class RegisterSerializer(serializers.ModelSerializer):
             "reach",
         ]
 
-    def save(self):
-        participant = Participant.objects.create(**self.validated_data)
-        return participant
+    def get_email(self, instance):
+        return instance.user.email
+
+    def validate_email(self, email):
+        email = super().validate_email(email)
+        if Participant.objects.filter(user__email=email).exists():
+            raise serializers.ValidationError(
+                "Partricipant with this email already exists"
+            )
+        return email
+
+    def validate_password(self, value):
+        return super().validate_password1(value)
+
+    def validate(self, data):
+        data["password1"] = data["password"]
+        return data
+
+    def save(self, request):
+        user = super().save(request)
+        self.remove_fields(["email", "password1", "password"])
+        Participant.objects.create(user=user, **self.validated_data)
+        return user
+
+    def remove_fields(self, fields):
+        for field in fields:
+            self.validated_data.pop(field)
