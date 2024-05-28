@@ -152,6 +152,8 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 REST_AUTH = {
     "REGISTER_SERIALIZER": "register.serializers.RegisterSerializer",
     "LOGIN_SERIALIZER": "accounts.serializers.LoginSerializer",
