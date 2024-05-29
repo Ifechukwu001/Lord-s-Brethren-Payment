@@ -6,6 +6,7 @@ from dj_rest_auth.registration.views import RegisterView as DJRegisterView
 
 
 from .models import Participant
+from .serializers import ParticipantSerializer
 
 
 class RegisterView(DJRegisterView):
@@ -28,6 +29,30 @@ class RegisterView(DJRegisterView):
         if "user" in data:
             data.pop("user")
         return data
+
+
+class ParticipantAPIView(generics.RetrieveUpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ParticipantSerializer
+
+    def get_object(self):
+        return get_object_or_404(Participant, user=self.request.user)
+
+    @extend_schema(
+        responses={
+            200: ParticipantSerializer,
+        }
+    )
+    def get(self, request):
+        return super().get(request)
+
+    @extend_schema(
+        responses={
+            200: ParticipantSerializer,
+        }
+    )
+    def put(self, request):
+        return super().patch(request)
 
 
 class GenerateTicketPaymentAPIView(generics.GenericAPIView):
