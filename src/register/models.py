@@ -59,8 +59,12 @@ class Participant(models.Model):
                 amount = 2000
 
             self.transaction = Transaction.objects.create(
-                email=self.email, amount=amount, currency="NGN"
+                email=self.user.email, amount=amount, currency="NGN"
             )
             self.save()
 
         return self.transaction.generate_payment_link(title)
+
+    @property
+    def has_paid(self):
+        return self.transaction and self.transaction.is_success
