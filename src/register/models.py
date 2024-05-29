@@ -67,4 +67,7 @@ class Participant(models.Model):
 
     @property
     def has_paid(self):
-        return self.transaction and self.transaction.is_success
+        result = False
+        if self.transaction:
+            result = self.transaction.is_success
+        return result
