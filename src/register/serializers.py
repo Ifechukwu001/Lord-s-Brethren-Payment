@@ -60,3 +60,28 @@ class RegisterSerializer(DJRegisterSerializer, serializers.ModelSerializer):
     def remove_fields(self, fields):
         for field in fields:
             self.validated_data.pop(field)
+
+
+class ParticipantSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+    category = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Participant
+        fields = [
+            "firstname",
+            "lastname",
+            "email",
+            "phone",
+            "gender",
+            "birthdate",
+            "address",
+            "category",
+            "church_name",
+            "attendance_mode",
+            "was_participant",
+            "is_aware_of_convention",
+            "health_issue",
+            "reach",
+            "has_paid",
+        ]
