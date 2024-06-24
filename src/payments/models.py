@@ -16,13 +16,23 @@ class Transaction(models.Model):
     def __str__(self):
         return f"${self.reference}"
 
-    def generate_payment_link(self, title):
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            reference = uuid4()
+            qs = Transaction.objects.filter(reference=reference)
+            while qs.exists():
+                reference = uuid4()
+                qs = Transaction.objects.filter(reference=reference)
+            self.reference = reference
+        super().save(*args, **kwargs)
+
+    def generate_payment_link(self, title, callback_url=None):
         headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
         data = {
             "tx_ref": f"Church_{str(self.reference)}",
             "amount": float(self.amount),
             "currency": self.currency,
-            "redirect_url": config("PAYMENT_REDIRECT_URL"),
+            "redirect_url": callback_url if callback_url else "example.com",
             "customer": {
                 "email": self.email,
             },
