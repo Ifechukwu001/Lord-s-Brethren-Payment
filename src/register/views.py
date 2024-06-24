@@ -6,7 +6,7 @@ from dj_rest_auth.registration.views import RegisterView as DJRegisterView
 
 
 from .models import Participant
-from .serializers import ParticipantSerializer
+from .serializers import ParticipantSerializer, GenerateTicketSerializer
 
 
 class RegisterView(DJRegisterView):
@@ -56,6 +56,7 @@ class ParticipantAPIView(generics.RetrieveUpdateAPIView):
 
 
 class GenerateTicketPaymentAPIView(generics.GenericAPIView):
+    serializer_class = GenerateTicketSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(
@@ -70,10 +71,14 @@ class GenerateTicketPaymentAPIView(generics.GenericAPIView):
         }
     )
     def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        callback_url = serializer.validated_data.get("callback_url")
+
         participant = get_object_or_404(Participant, user=request.user)
         if participant.has_paid:
             raise serializers.ValidationError("Payment already made")
-        link = participant.generate_payment_link()
+        link = participant.generate_payment_link(callback_url=callback_url)
         if not link:
             return Response(
                 {
