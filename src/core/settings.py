@@ -158,6 +158,8 @@ REST_AUTH = {
     "REGISTER_SERIALIZER": "register.serializers.RegisterSerializer",
     "LOGIN_SERIALIZER": "accounts.serializers.LoginSerializer",
     "JWT_SERIALIZER": "accounts.serializers.JWTSerializer",
+    "JWT_AUTH_COOKIE": "access_token",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh_token",
     "JWT_AUTH_HTTPONLY": False,
     "USE_JWT": True,
 }
