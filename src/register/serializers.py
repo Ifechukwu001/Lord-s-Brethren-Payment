@@ -44,8 +44,8 @@ class RegisterSerializer(DJRegisterSerializer, serializers.ModelSerializer):
             )
         return email
 
-    def validate_password(self, value):
-        return super().validate_password1(value)
+    # def validate_password(self, value):
+    #     return super().validate_password1(value)
 
     def validate(self, data):
         data["password1"] = data["password"]
