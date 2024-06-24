@@ -46,11 +46,12 @@ class Participant(models.Model):
     health_issue = models.TextField(null=True, blank=True)
     reach = models.CharField(max_length=10, choices=Reach.choices, default=Reach.CHURCH)
     transaction = models.OneToOneField(Transaction, on_delete=models.CASCADE, null=True)
+    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.firstname} {self.lastname}"
 
-    def generate_payment_link(self):
+    def generate_payment_link(self, callback_url=None):
         title = "Payment for Convention"
         if not self.transaction:
             if self.category == self.Types.MEMBER:
@@ -63,7 +64,7 @@ class Participant(models.Model):
             )
             self.save()
 
-        return self.transaction.generate_payment_link(title)
+        return self.transaction.generate_payment_link(title, callback_url)
 
     @property
     def has_paid(self):
