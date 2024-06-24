@@ -85,3 +85,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
             "reach",
             "has_paid",
         ]
+
+
+class GenerateTicketSerializer(serializers.Serializer):
+    callback_url = serializers.URLField(required=False)
