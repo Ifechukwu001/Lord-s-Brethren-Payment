@@ -9,7 +9,11 @@ payment_queue = queue.Queue()
 def process_payment():
     while True:
         transaction = payment_queue.get()
-        trans_object = Transaction.objects.get(reference=transaction.get("tx_ref"))
+        trans_object = Transaction.objects.filter(reference=transaction.get("tx_ref"))
+        if trans_object.exists():
+            trans_object = trans_object.first()
+        else:
+            trans_object = None
 
         if trans_object and not trans_object.is_success:
             if (
