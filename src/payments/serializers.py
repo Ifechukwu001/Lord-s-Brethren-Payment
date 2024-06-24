@@ -10,6 +10,7 @@ class TransactionSerializer(serializers.Serializer):
     )
     currency = serializers.CharField(max_length=3, default="NGN")
     email = serializers.EmailField()
+    callback_url = serializers.URLField(required=False)
 
     def validate_currency(self, value):
         return value.upper()
@@ -27,4 +28,8 @@ class TransactionSerializer(serializers.Serializer):
         )
         if transaction.exists():
             return transaction.first()
-        return Transaction.objects.create(**validated_data)
+        return Transaction.objects.create(email=email, amount=amount, currency=currency)
+
+
+class TransactionVerifySerializer(serializers.Serializer):
+    transaction_id = serializers.CharField()
