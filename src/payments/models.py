@@ -9,19 +9,19 @@ class Transaction(models.Model):
     email = models.EmailField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3)
-    reference = models.UUIDField(default=uuid4, editable=False, unique=True)
+    reference = models.CharField(max_length=20, editable=False, unique=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_success = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"${self.reference}"
+        return f"$__{self.reference}"
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            reference = uuid4()
+            reference = uuid4().hex[:10]
             qs = Transaction.objects.filter(reference=reference)
             while qs.exists():
-                reference = uuid4()
+                reference = uuid4().hex[:10]
                 qs = Transaction.objects.filter(reference=reference)
             self.reference = reference
         super().save(*args, **kwargs)
@@ -29,10 +29,10 @@ class Transaction(models.Model):
     def generate_payment_link(self, title, callback_url=None):
         headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
         data = {
-            "tx_ref": f"Church_{str(self.reference)}",
+            "tx_ref": self.reference,
             "amount": float(self.amount),
             "currency": self.currency,
-            "redirect_url": callback_url if callback_url else "example.com",
+            "redirect_url": callback_url if callback_url else "http://example.com",
             "customer": {
                 "email": self.email,
             },
