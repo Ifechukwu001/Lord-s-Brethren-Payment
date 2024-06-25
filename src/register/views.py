@@ -2,57 +2,71 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, serializers, permissions
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, inline_serializer
-from dj_rest_auth.registration.views import RegisterView as DJRegisterView
 
 
 from .models import Participant
-from .serializers import ParticipantSerializer, GenerateTicketSerializer
+from .serializers import (
+    RegisterSerializer,
+    ParticipantSerializer,
+    GenerateTicketSerializer,
+)
 
 
-class RegisterView(DJRegisterView):
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
     @extend_schema(
         responses={
             201: inline_serializer(
-                name="RegisterResponse",
+                name="TransactionLink",
                 fields={
-                    "access": serializers.CharField(),
-                    "refresh": serializers.CharField(),
+                    "status": serializers.CharField(default="success"),
+                    "link": serializers.URLField(default=""),
+                },
+            ),
+            424: inline_serializer(
+                name="TransactionFailed",
+                fields={
+                    "status": serializers.CharField(default="failed"),
+                    "message": serializers.CharField(default="An error occurred"),
                 },
             ),
         }
     )
     def post(self, request):
-        return super().post(request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        callback_url = serializer.validated_data.get("callback_url")
+        participant = serializer.save()
+        link = participant.generate_payment_link(callback_url=callback_url)
+        if not link:
+            response_data = {"status": "failed", "message": "An error occurred"}
+            return Response(
+                response_data,
+                status=status.HTTP_424_FAILED_DEPENDENCY,
+            )
+        return Response(
+            {"link": link, "status": "success"},
+            status=status.HTTP_201_CREATED,
+        )
 
-    def get_response_data(self, user):
-        data = super().get_response_data(user)
-        if "user" in data:
-            data.pop("user")
-        return data
 
-
-class ParticipantAPIView(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class ParticipantAPIView(generics.RetrieveAPIView):
+    queryset = Participant.objects.all()
     serializer_class = ParticipantSerializer
 
     def get_object(self):
-        return get_object_or_404(Participant, user=self.request.user)
+        return generics.get_object_or_404(
+            self.get_queryset(), transaction__reference=self.kwargs.get("reference")
+        )
 
     @extend_schema(
         responses={
             200: ParticipantSerializer,
         }
     )
-    def get(self, request):
-        return super().get(request)
-
-    @extend_schema(
-        responses={
-            200: ParticipantSerializer,
-        }
-    )
-    def put(self, request):
-        return super().patch(request)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class GenerateTicketPaymentAPIView(generics.GenericAPIView):
