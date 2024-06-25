@@ -22,15 +22,15 @@ class TransactionCreateView(generics.GenericAPIView):
             201: inline_serializer(
                 name="TransactionLink",
                 fields={
-                    "status": serializers.CharField(),
-                    "link": serializers.URLField(),
+                    "status": serializers.CharField(default="success"),
+                    "link": serializers.URLField(default=""),
                 },
             ),
             424: inline_serializer(
                 name="TransactionFailed",
                 fields={
-                    "status": serializers.CharField(),
-                    "message": serializers.CharField(),
+                    "status": serializers.CharField(default="failed"),
+                    "message": serializers.CharField(default="An error occurred"),
                 },
             ),
         }
@@ -74,7 +74,7 @@ class TransactionWebHook(generics.GenericAPIView):
         response_data = response.json()
 
         if response_data.get("status") == "success":
-            tx_ref = response_data.get("data").get("tx_ref").split("_")[1]
+            tx_ref = response_data.get("data").get("tx_ref")
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
             tx_status = response_data.get("data").get("status").lower()
@@ -148,7 +148,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
         response_data = response.json()
 
         if response_data.get("status") == "success":
-            tx_ref = response_data.get("data").get("tx_ref").split("_")[1]
+            tx_ref = response_data.get("data").get("tx_ref")
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
             tx_status = response_data.get("data").get("status").lower()
@@ -159,31 +159,84 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
             else:
                 trans_object = None
 
-            if trans_object and not trans_object.is_success:
-                if (
-                    tx_status == "successful"
-                    and currency == trans_object.currency
-                    and amount == trans_object.amount
-                ):
-                    trans_object.is_success = True
-                    trans_object.save()
-                    return Response(
-                        {"status": "success", "message": "Transaction was successful"},
-                        status=status.HTTP_200_OK,
-                    )
-                if tx_status == "failed":
+            if trans_object:
+                if not trans_object.is_success:
+                    if (
+                        tx_status == "successful"
+                        and currency == trans_object.currency
+                        and amount == trans_object.amount
+                    ):
+                        trans_object.is_success = True
+                        trans_object.save()
+
+                        details = dict()
+                        group = None
+                        try:
+                            p = trans_object.participant
+                            details = {
+                                "firstname": p.firstname,
+                                "lastname": p.lastname,
+                                "email": p.email,
+                                "phone": p.phone,
+                                "category": p.category,
+                                "gender": p.gender,
+                                "reference": tx_ref,
+                            }
+                            group = "participant"
+                        except Transaction.participant.RelatedObjectDoesNotExist:
+                            details = {
+                                "email": trans_object.email,
+                                "reference": tx_ref,
+                            }
+                            group = "partner"
+
+                        return Response(
+                            {
+                                "status": "success",
+                                "message": "Transaction was successful",
+                                "details": details,
+                                "group": group,
+                            },
+                            status=status.HTTP_200_OK,
+                        )
+                    if tx_status == "failed":
+                        return Response(
+                            {
+                                "status": "failed",
+                                "message": "Transaction was not successful",
+                            },
+                            status=status.HTTP_402_PAYMENT_REQUIRED,
+                        )
+                else:
+                    details = dict()
+                    group = None
+                    try:
+                        p = trans_object.participant
+                        details = {
+                            "firstname": p.firstname,
+                            "lastname": p.lastname,
+                            "email": p.email,
+                            "phone": p.phone,
+                            "category": p.category,
+                            "gender": p.gender,
+                            "reference": tx_ref,
+                        }
+                        group = "participant"
+                    except Transaction.participant.RelatedObjectDoesNotExist:
+                        details = {
+                            "email": trans_object.email,
+                            "reference": tx_ref,
+                        }
+                        group = "partner"
                     return Response(
                         {
-                            "status": "failed",
-                            "message": "Transaction was not successful",
+                            "status": "success",
+                            "message": "Transaction already processed",
+                            "details": details,
+                            "group": group,
                         },
-                        status=status.HTTP_402_PAYMENT_REQUIRED,
+                        status=status.HTTP_208_ALREADY_REPORTED,
                     )
-            else:
-                return Response(
-                    {"status": "success", "message": "Transaction already processed"},
-                    status=status.HTTP_208_ALREADY_REPORTED,
-                )
 
         elif response_data.get("status") == "error":
             return Response(
