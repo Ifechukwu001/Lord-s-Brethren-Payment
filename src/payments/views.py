@@ -100,7 +100,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
 
     @extend_schema(
         responses={
-            201: inline_serializer(
+            200: inline_serializer(
                 name="TransactionSuccess",
                 fields={
                     "status": serializers.CharField(default="success"),
