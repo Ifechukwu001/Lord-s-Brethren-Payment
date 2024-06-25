@@ -107,6 +107,8 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                     "message": serializers.CharField(
                         default="Transaction was successful"
                     ),
+                    "details": serializers.DictField(default={}),
+                    "group": serializers.CharField(default="participant"),
                 },
             ),
             208: inline_serializer(
@@ -116,6 +118,8 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                     "message": serializers.CharField(
                         default="Transaction already processed"
                     ),
+                    "details": serializers.DictField(default={}),
+                    "group": serializers.CharField(default="participant"),
                 },
             ),
             400: inline_serializer(
