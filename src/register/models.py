@@ -1,5 +1,4 @@
 from django.db import models
-from django.conf import settings
 
 from payments.models import Transaction
 
@@ -29,7 +28,7 @@ class Participant(models.Model):
 
     firstname = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    email = models.EmailField()
     phone = models.CharField(max_length=15)
     gender = models.CharField(max_length=2, choices=Gender.choices, default=Gender.MALE)
     birthdate = models.DateField()
@@ -60,14 +59,14 @@ class Participant(models.Model):
                 amount = 2000
 
             self.transaction = Transaction.objects.create(
-                email=self.user.email, amount=amount, currency="NGN"
+                email=self.email, amount=amount, currency="NGN"
             )
             self.save()
 
         return self.transaction.generate_payment_link(title, callback_url)
 
     @property
-    def has_paid(self):
+    def has_paid(self) -> bool:
         result = False
         if self.transaction:
             result = self.transaction.is_success
