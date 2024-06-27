@@ -52,7 +52,7 @@ class Participant(models.Model):
         return f"{self.firstname} {self.lastname}"
 
     def generate_payment_link(self, callback_url=None):
-        title = "Payment for Convention"
+        description = "Ticket Payment for Conference"
         if not self.transaction:
             if self.category == self.Types.MEMBER:
                 amount = config("MEMBER_PRICE")
@@ -64,7 +64,7 @@ class Participant(models.Model):
             )
             self.save()
 
-        return self.transaction.generate_payment_link(title, callback_url)
+        return self.transaction.generate_payment_link(description, callback_url)
 
     @property
     def has_paid(self) -> bool:
