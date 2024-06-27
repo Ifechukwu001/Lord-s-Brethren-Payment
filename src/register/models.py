@@ -1,5 +1,6 @@
 from django.db import models
 
+from core.env import config
 from payments.models import Transaction
 
 
@@ -54,9 +55,9 @@ class Participant(models.Model):
         title = "Payment for Convention"
         if not self.transaction:
             if self.category == self.Types.MEMBER:
-                amount = 5000
+                amount = config("MEMBER_PRICE")
             else:
-                amount = 2000
+                amount = config("INVITEE_PRICE")
 
             self.transaction = Transaction.objects.create(
                 email=self.email, amount=amount, currency="NGN"
