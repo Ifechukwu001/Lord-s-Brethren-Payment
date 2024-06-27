@@ -26,18 +26,24 @@ class Transaction(models.Model):
             self.reference = reference
         super().save(*args, **kwargs)
 
-    def generate_payment_link(self, title, callback_url=None):
+    def generate_payment_link(self, description, callback_url=None):
         headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
+        callback = (
+            callback_url
+            if callback_url
+            else config("PAYMENT_REDIRECT_URL", default="") or "http://example.com"
+        )
         data = {
             "tx_ref": self.reference,
             "amount": float(self.amount),
             "currency": self.currency,
-            "redirect_url": callback_url if callback_url else "http://example.com",
+            "redirect_url": callback,
             "customer": {
                 "email": self.email,
             },
             "customizations": {
-                "title": title,
+                "title": "The Lord's Brethren Convocation 2024 (TLBC'24)",
+                "description": description,
                 "logo": config("LOGO_URL"),
             },
         }
