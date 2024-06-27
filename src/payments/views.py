@@ -41,8 +41,10 @@ class TransactionCreateView(generics.GenericAPIView):
         callback_url = serializer.validated_data.get("callback_url")
         transaction = serializer.create()
 
-        title = "Partnership payment"
-        link = transaction.generate_payment_link(title=title, callback_url=callback_url)
+        description = "Partner with us to make the conference a success"
+        link = transaction.generate_payment_link(
+            description=description, callback_url=callback_url
+        )
         if not link:
             response_data = {"status": "failed", "message": "An error occurred"}
             return Response(response_data, status=status.HTTP_424_FAILED_DEPENDENCY)
