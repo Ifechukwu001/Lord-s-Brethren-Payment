@@ -42,19 +42,19 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Local apps
-    "accounts",
+    # "accounts",
     "register",
     "payments",
     # Third-party apps
     "rest_framework",
-    "rest_framework.authtoken",
-    "allauth",
-    "allauth.account",
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
+    # "rest_framework.authtoken",
+    # "allauth",
+    # "allauth.account",
+    # "dj_rest_auth",
+    # "dj_rest_auth.registration",
     "corsheaders",
     "drf_spectacular",
-    "rest_framework_simplejwt.token_blacklist",
+    # "rest_framework_simplejwt.token_blacklist",
 ]
 
 SITE_ID = 1
@@ -68,7 +68,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    # "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -144,7 +144,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "accounts.User"
+# AUTH_USER_MODEL = "accounts.User"
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
@@ -154,21 +154,21 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-REST_AUTH = {
-    "REGISTER_SERIALIZER": "register.serializers.RegisterSerializer",
-    "LOGIN_SERIALIZER": "accounts.serializers.LoginSerializer",
-    "JWT_SERIALIZER": "accounts.serializers.JWTSerializer",
-    "JWT_AUTH_COOKIE": "access_token",
-    "JWT_AUTH_REFRESH_COOKIE": "refresh_token",
-    "JWT_AUTH_HTTPONLY": False,
-    "USE_JWT": True,
-}
+# REST_AUTH = {
+#     "REGISTER_SERIALIZER": "register.serializers.RegisterSerializer",
+#     "LOGIN_SERIALIZER": "accounts.serializers.LoginSerializer",
+#     "JWT_SERIALIZER": "accounts.serializers.JWTSerializer",
+#     "JWT_AUTH_COOKIE": "access_token",
+#     "JWT_AUTH_REFRESH_COOKIE": "refresh_token",
+#     "JWT_AUTH_HTTPONLY": False,
+#     "USE_JWT": True,
+# }
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
-    ),
+    # "DEFAULT_AUTHENTICATION_CLASSES": (
+    #     "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+    # ),
 }
 
 SPECTACULAR_SETTINGS = {
