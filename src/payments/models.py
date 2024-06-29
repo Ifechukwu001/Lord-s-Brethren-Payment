@@ -53,4 +53,5 @@ class Transaction(models.Model):
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code == 200:
-            return response.json().get("data").get("link")
+            return response.json().get("data").get("link"), self.reference
+        return None, None
