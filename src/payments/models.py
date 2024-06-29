@@ -42,7 +42,7 @@ class Transaction(models.Model):
                 "email": self.email,
             },
             "customizations": {
-                "title": "The Lord's Brethren Convocation 2024 (TLBC'24)",
+                "title": f"TLBC'24 (Reference: {self.reference})",
                 "description": description,
                 "logo": config("LOGO_URL"),
             },
