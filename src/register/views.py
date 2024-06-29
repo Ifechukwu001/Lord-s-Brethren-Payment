@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 
+from core.env import config
 from .models import Participant
 from .serializers import (
     RegisterSerializer,
@@ -23,6 +24,8 @@ class RegisterView(generics.CreateAPIView):
                     "status": serializers.CharField(default="success"),
                     "link": serializers.URLField(default=""),
                     "reference": serializers.CharField(default="TLBC240001"),
+                    "amount": serializers.CharField(default="2000"),
+                    "category": serializers.CharField(default="Invitee")
                 },
             ),
             424: inline_serializer(
@@ -46,8 +49,19 @@ class RegisterView(generics.CreateAPIView):
                 response_data,
                 status=status.HTTP_424_FAILED_DEPENDENCY,
             )
+        
+        if participant.category == Participant.Types.INVITEE:
+            details = {
+                "amount": config("INVITEE_PRICE"),
+                "category": "Invitee"
+            }
+        else:
+            details = {
+                "amount": config("MEMBER_PRICE"),
+                "category": "Member"
+            } 
         return Response(
-            {"link": link, "status": "success", "reference": reference},
+            {"link": link, "status": "success", "reference": reference, **details},
             status=status.HTTP_201_CREATED,
         )
 
