@@ -18,14 +18,15 @@ class RegisterView(generics.CreateAPIView):
     @extend_schema(
         responses={
             201: inline_serializer(
-                name="TransactionLink",
+                name="RegistrationLink",
                 fields={
                     "status": serializers.CharField(default="success"),
                     "link": serializers.URLField(default=""),
+                    "reference": serializers.CharField(default="TLBC240001"),
                 },
             ),
             424: inline_serializer(
-                name="TransactionFailed",
+                name="RegistrationFailed",
                 fields={
                     "status": serializers.CharField(default="failed"),
                     "message": serializers.CharField(default="An error occurred"),
@@ -38,7 +39,7 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         callback_url = serializer.validated_data.get("callback_url")
         participant = serializer.save()
-        link = participant.generate_payment_link(callback_url=callback_url)
+        link, reference = participant.generate_payment_link(callback_url=callback_url)
         if not link:
             response_data = {"status": "failed", "message": "An error occurred"}
             return Response(
@@ -46,7 +47,7 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_424_FAILED_DEPENDENCY,
             )
         return Response(
-            {"link": link, "status": "success"},
+            {"link": link, "status": "success", "reference": reference},
             status=status.HTTP_201_CREATED,
         )
 
