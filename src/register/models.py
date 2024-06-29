@@ -59,8 +59,9 @@ class Participant(models.Model):
             else:
                 amount = config("INVITEE_PRICE")
 
+            reference = f"TLBC24{self.id:004}"
             self.transaction = Transaction.objects.create(
-                email=self.email, amount=amount, currency="NGN"
+                email=self.email, amount=amount, currency="NGN", reference=reference
             )
             self.save()
 
