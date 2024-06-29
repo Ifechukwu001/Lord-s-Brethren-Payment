@@ -153,11 +153,15 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
         response = requests.get(url, headers=headers)
         response_data = response.json()
 
+        print(response_data)
+
         if response_data.get("status") == "success":
             tx_ref = response_data.get("data").get("tx_ref")
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
             tx_status = response_data.get("data").get("status").lower()
+            payment_type = response_data.get("data").get("payment_type")
+
 
             trans_object = Transaction.objects.filter(reference=tx_ref)
             if trans_object.exists():
@@ -187,12 +191,16 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                                 "category": p.category,
                                 "gender": p.gender,
                                 "reference": tx_ref,
+                                "amount": amount,
+                                "payment_type": payment_type,
                             }
                             group = "participant"
                         except Transaction.participant.RelatedObjectDoesNotExist:
                             details = {
                                 "email": trans_object.email,
                                 "reference": tx_ref,
+                                "amount": amount,
+                                "payment_type": payment_type,
                             }
                             group = "partner"
 
@@ -226,12 +234,16 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                             "category": p.category,
                             "gender": p.gender,
                             "reference": tx_ref,
+                            "amount": amount,
+                            "payment_type": payment_type,
                         }
                         group = "participant"
                     except Transaction.participant.RelatedObjectDoesNotExist:
                         details = {
                             "email": trans_object.email,
                             "reference": tx_ref,
+                            "amount": amount,
+                            "payment_type": payment_type,
                         }
                         group = "partner"
                     return Response(
