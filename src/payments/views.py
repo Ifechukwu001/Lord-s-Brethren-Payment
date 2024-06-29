@@ -24,6 +24,7 @@ class TransactionCreateView(generics.GenericAPIView):
                 fields={
                     "status": serializers.CharField(default="success"),
                     "link": serializers.URLField(default=""),
+                    "reference": serializers.CharField(default=""),
                 },
             ),
             424: inline_serializer(
@@ -42,14 +43,14 @@ class TransactionCreateView(generics.GenericAPIView):
         transaction = serializer.create()
 
         description = "Partner with us to make the conference a success"
-        link = transaction.generate_payment_link(
+        link, reference = transaction.generate_payment_link(
             description=description, callback_url=callback_url
         )
         if not link:
             response_data = {"status": "failed", "message": "An error occurred"}
             return Response(response_data, status=status.HTTP_424_FAILED_DEPENDENCY)
 
-        response_data = {"status": "success", "link": link}
+        response_data = {"status": "success", "link": link, "reference": reference}
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
@@ -153,7 +154,6 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
         response = requests.get(url, headers=headers)
         response_data = response.json()
 
-        print(response_data)
 
         if response_data.get("status") == "success":
             tx_ref = response_data.get("data").get("tx_ref")
