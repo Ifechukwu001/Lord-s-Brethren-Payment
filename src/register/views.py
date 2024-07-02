@@ -25,7 +25,7 @@ class RegisterView(generics.CreateAPIView):
                     "link": serializers.URLField(default=""),
                     "reference": serializers.CharField(default="TLBC240001"),
                     "amount": serializers.CharField(default="2000"),
-                    "category": serializers.CharField(default="Invitee")
+                    "category": serializers.CharField(default="Invitee"),
                 },
             ),
             424: inline_serializer(
@@ -49,17 +49,11 @@ class RegisterView(generics.CreateAPIView):
                 response_data,
                 status=status.HTTP_424_FAILED_DEPENDENCY,
             )
-        
+
         if participant.category == Participant.Types.INVITEE:
-            details = {
-                "amount": config("INVITEE_PRICE"),
-                "category": "Invitee"
-            }
+            details = {"amount": config("INVITEE_PRICE"), "category": "Invitee"}
         else:
-            details = {
-                "amount": config("MEMBER_PRICE"),
-                "category": "Member"
-            } 
+            details = {"amount": config("MEMBER_PRICE"), "category": "Member"}
         return Response(
             {"link": link, "status": "success", "reference": reference, **details},
             status=status.HTTP_201_CREATED,
