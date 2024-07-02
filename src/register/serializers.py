@@ -27,10 +27,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             "callback_url",
         ]
 
-        def save(self):
-            if "callback_url" in self.validated_data:
-                self.validated_data.pop("callback_url")
-            return super().save()
+    def save(self):
+        if "callback_url" in self.validated_data:
+            self.validated_data.pop("callback_url")
+        return super().save()
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
