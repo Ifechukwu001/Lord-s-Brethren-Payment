@@ -154,14 +154,15 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
         response = requests.get(url, headers=headers)
         response_data = response.json()
 
+        print(response_data)
 
         if response_data.get("status") == "success":
+            print("I'm Here")
             tx_ref = response_data.get("data").get("tx_ref")
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
             tx_status = response_data.get("data").get("status").lower()
             payment_type = response_data.get("data").get("payment_type")
-
 
             trans_object = Transaction.objects.filter(reference=tx_ref)
             if trans_object.exists():
@@ -256,6 +257,10 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                         status=status.HTTP_208_ALREADY_REPORTED,
                     )
 
+            return Response(
+                {"status": "error", "message": "Invalid Transaction"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         elif response_data.get("status") == "error":
             return Response(
                 {"status": "error", "message": "Invalid Transaction ID"},
