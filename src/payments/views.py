@@ -157,7 +157,6 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
         print(response_data)
 
         if response_data.get("status") == "success":
-            print("I'm Here")
             tx_ref = response_data.get("data").get("tx_ref")
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
