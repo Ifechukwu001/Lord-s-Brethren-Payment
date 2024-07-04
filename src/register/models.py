@@ -73,3 +73,34 @@ class Participant(models.Model):
         if self.transaction:
             result = self.transaction.is_success
         return result
+
+
+class Partner(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    transaction = models.OneToOneField(Transaction, on_delete=models.CASCADE, null=True)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return {self.name}
+
+    def generate_payment_link(self, amount, currency, callback_url=None):
+        description = "Partner Payment for Conference"
+        if not self.transaction:
+            reference = f"TLBC24{self.id:004}P"
+            self.transaction = Transaction.objects.create(
+                email=self.email, amount=amount, currency=currency, reference=reference
+            )
+            self.save()
+
+        return self.transaction.generate_payment_link(description, callback_url)
+
+    @property
+    def has_paid(self) -> bool:
+        result = False
+        if self.transaction:
+            result = self.transaction.is_success
+        return result
