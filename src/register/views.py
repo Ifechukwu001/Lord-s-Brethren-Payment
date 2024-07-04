@@ -11,7 +11,8 @@ from .serializers import (
     PartnerRegisterSerializer,
     ParticipantSerializer,
     PartnerSerializer,
-    GenerateTicketSerializer,
+    SearchSerializer,
+    GenerateSerializer,
 )
 
 
@@ -44,7 +45,7 @@ class ParticipantRegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         callback_url = serializer.validated_data.get("callback_url")
         participant = serializer.save()
-        link, reference = participant.generate_payment_link(callback_url=callback_url)
+        link, _ = participant.generate_payment_link(callback_url=callback_url)
         if not link:
             response_data = {"status": "failed", "message": "An error occurred"}
             return Response(
@@ -57,7 +58,12 @@ class ParticipantRegisterView(generics.CreateAPIView):
         else:
             details = {"amount": config("MEMBER_PRICE"), "category": "Member"}
         return Response(
-            {"link": link, "status": "success", "reference": reference, **details},
+            {
+                "link": link,
+                "status": "success",
+                "reference": participant.reference,
+                **details,
+            },
             status=status.HTTP_201_CREATED,
         )
 
@@ -91,7 +97,7 @@ class PartnerRegisterView(generics.CreateAPIView):
         amount = serializer.validated_data.get("amount")
         currency = serializer.validated_data.get("currency")
         partner = serializer.save()
-        link, reference = partner.generate_payment_link(
+        link, _ = partner.generate_payment_link(
             amount, currency, callback_url=callback_url
         )
         if not link:
@@ -102,7 +108,7 @@ class PartnerRegisterView(generics.CreateAPIView):
             )
 
         return Response(
-            {"link": link, "status": "success", "reference": reference},
+            {"link": link, "status": "success", "reference": partner.reference},
             status=status.HTTP_201_CREATED,
         )
 
@@ -110,11 +116,7 @@ class PartnerRegisterView(generics.CreateAPIView):
 class ParticipantAPIView(generics.RetrieveAPIView):
     queryset = Participant.objects.all()
     serializer_class = ParticipantSerializer
-
-    def get_object(self):
-        return generics.get_object_or_404(
-            self.get_queryset(), transaction__reference=self.kwargs.get("reference")
-        )
+    lookup_field = "reference"
 
     @extend_schema(
         responses={
@@ -128,11 +130,7 @@ class ParticipantAPIView(generics.RetrieveAPIView):
 class PartnerAPIView(generics.RetrieveAPIView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
-
-    def get_object(self):
-        return generics.get_object_or_404(
-            self.get_queryset(), transaction__reference=self.kwargs.get("reference")
-        )
+    lookup_field = "reference"
 
     @extend_schema(
         responses={
@@ -143,41 +141,72 @@ class PartnerAPIView(generics.RetrieveAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class GenerateTicketPaymentAPIView(generics.GenericAPIView):
-    serializer_class = GenerateTicketSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class SearchAPIView(generics.ListAPIView):
+    serializer_class = SearchSerializer
 
-    @extend_schema(
-        responses={
-            201: inline_serializer(
-                name="GenerateTicketPaymentResponse",
-                fields={
-                    "link": serializers.URLField(),
-                    "message": serializers.CharField(),
-                },
-            ),
-        }
-    )
-    def post(self, request):
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get("email")
+
+        results = list()
+
+        participants = Participant.objects.exclude(transaction__is_success=True).filter(
+            email=email
+        )
+        if participants.exists():
+            serializer = self.get_serializer(participants, many=True)
+            results.extend(serializer.data)
+
+        partners = Partner.objects.exclude(transaction__is_success=True).filter(
+            email=email
+        )
+        if partners.exists():
+            serializer = self.get_serializer(partners, many=True)
+            results.extend(serializer.data)
+
+        return Response(results, status=status.HTTP_200_OK)
+
+
+class GeneratePaymentLinkAPIView(generics.GenericAPIView):
+    serializer_class = GenerateSerializer
+
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
         callback_url = serializer.validated_data.get("callback_url")
+        reference = serializer.validated_data.get("reference")
 
-        participant = get_object_or_404(Participant, user=request.user)
-        if participant.has_paid:
-            raise serializers.ValidationError("Payment already made")
-        link = participant.generate_payment_link(callback_url=callback_url)
-        if not link:
+        if reference.endswith("P"):
+            partner = get_object_or_404(Partner, reference=reference)
+            link, _ = partner.generate_payment_link(callback_url=callback_url)
+            if not link:
+                return Response(
+                    {
+                        "message": "Payment link could not be generated",
+                    },
+                    status=status.HTTP_424_FAILED_DEPENDENCY,
+                )
             return Response(
                 {
-                    "message": "Payment link could not be generated",
+                    "link": link,
+                    "message": "Payment link generated successfully",
                 },
-                status=status.HTTP_424_FAILED_DEPENDENCY,
+                status=status.HTTP_201_CREATED,
             )
-        return Response(
-            {
-                "link": link,
-                "message": "Payment link generated successfully",
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        else:
+            participant = get_object_or_404(Participant, reference=reference)
+            link, _ = participant.generate_payment_link(callback_url=callback_url)
+            if not link:
+                return Response(
+                    {
+                        "message": "Payment link could not be generated",
+                    },
+                    status=status.HTTP_424_FAILED_DEPENDENCY,
+                )
+            return Response(
+                {
+                    "link": link,
+                    "message": "Payment link generated successfully",
+                },
+                status=status.HTTP_201_CREATED,
+            )
