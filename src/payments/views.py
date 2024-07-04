@@ -179,7 +179,6 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                         trans_object.save()
 
                         details = {
-                            "reference": tx_ref,
                             "amount": amount,
                         }
                         group = None
@@ -193,6 +192,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                                     "phone": p.phone,
                                     "category": p.category,
                                     "gender": p.gender,
+                                    "reference": p.reference,
                                 }
                             )
                             group = "participant"
@@ -207,6 +207,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                                     "name": pt.name,
                                     "phone": pt.phone,
                                     "country": pt.country,
+                                    "reference": pt.reference,
                                 }
                             )
                             group = "partner"
@@ -232,7 +233,6 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                         )
                 else:
                     details = {
-                        "reference": tx_ref,
                         "amount": amount,
                     }
                     group = None
@@ -246,6 +246,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                                 "phone": p.phone,
                                 "category": p.category,
                                 "gender": p.gender,
+                                "reference": p.reference,
                             }
                         )
                         group = "participant"
@@ -260,6 +261,7 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                                 "name": pt.name,
                                 "phone": pt.phone,
                                 "country": pt.country,
+                                "reference": pt.reference,
                             }
                         )
                         group = "partner"
