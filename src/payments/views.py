@@ -161,7 +161,6 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
             amount = response_data.get("data").get("amount")
             currency = response_data.get("data").get("currency")
             tx_status = response_data.get("data").get("status").lower()
-            payment_type = response_data.get("data").get("payment_type")
 
             trans_object = Transaction.objects.filter(reference=tx_ref)
             if trans_object.exists():
@@ -179,30 +178,40 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                         trans_object.is_success = True
                         trans_object.save()
 
-                        details = dict()
+                        details = {
+                            "reference": tx_ref,
+                            "amount": amount,
+                        }
                         group = None
                         try:
                             p = trans_object.participant
-                            details = {
-                                "firstname": p.firstname,
-                                "lastname": p.lastname,
-                                "email": p.email,
-                                "phone": p.phone,
-                                "category": p.category,
-                                "gender": p.gender,
-                                "reference": tx_ref,
-                                "amount": amount,
-                                "payment_type": payment_type,
-                            }
+                            details.update(
+                                {
+                                    "firstname": p.firstname,
+                                    "lastname": p.lastname,
+                                    "email": p.email,
+                                    "phone": p.phone,
+                                    "category": p.category,
+                                    "gender": p.gender,
+                                }
+                            )
                             group = "participant"
                         except Transaction.participant.RelatedObjectDoesNotExist:
-                            details = {
-                                "email": trans_object.email,
-                                "reference": tx_ref,
-                                "amount": amount,
-                                "payment_type": payment_type,
-                            }
+                            pass
+
+                        try:
+                            pt = trans_object.partner
+                            details.update(
+                                {
+                                    "email": pt.email,
+                                    "name": pt.name,
+                                    "phone": pt.phone,
+                                    "country": pt.country,
+                                }
+                            )
                             group = "partner"
+                        except Transaction.partner.RelatedObjectDoesNotExist:
+                            pass
 
                         return Response(
                             {
@@ -222,30 +231,41 @@ class TransactionVerifyAPIView(generics.GenericAPIView):
                             status=status.HTTP_402_PAYMENT_REQUIRED,
                         )
                 else:
-                    details = dict()
+                    details = {
+                        "reference": tx_ref,
+                        "amount": amount,
+                    }
                     group = None
                     try:
                         p = trans_object.participant
-                        details = {
-                            "firstname": p.firstname,
-                            "lastname": p.lastname,
-                            "email": p.email,
-                            "phone": p.phone,
-                            "category": p.category,
-                            "gender": p.gender,
-                            "reference": tx_ref,
-                            "amount": amount,
-                            "payment_type": payment_type,
-                        }
+                        details.update(
+                            {
+                                "firstname": p.firstname,
+                                "lastname": p.lastname,
+                                "email": p.email,
+                                "phone": p.phone,
+                                "category": p.category,
+                                "gender": p.gender,
+                            }
+                        )
                         group = "participant"
                     except Transaction.participant.RelatedObjectDoesNotExist:
-                        details = {
-                            "email": trans_object.email,
-                            "reference": tx_ref,
-                            "amount": amount,
-                            "payment_type": payment_type,
-                        }
+                        pass
+
+                    try:
+                        pt = trans_object.partner
+                        details.update(
+                            {
+                                "email": pt.email,
+                                "name": pt.name,
+                                "phone": pt.phone,
+                                "country": pt.country,
+                            }
+                        )
                         group = "partner"
+                    except Transaction.partner.RelatedObjectDoesNotExist:
+                        pass
+
                     return Response(
                         {
                             "status": "success",
