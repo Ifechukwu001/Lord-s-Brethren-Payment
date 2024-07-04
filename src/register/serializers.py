@@ -106,5 +106,24 @@ class PartnerSerializer(serializers.ModelSerializer):
         ]
 
 
-class GenerateTicketSerializer(serializers.Serializer):
+class SearchSerializer(serializers.Serializer):
+    reference = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(required=False)
+    name = serializers.CharField(required=False)
+    firstname = serializers.CharField(required=False)
+    lastname = serializers.CharField(required=False)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get("firstname") and data.get("lastname"):
+            data["name"] = f"{data.pop('firstname')} {data.pop('lastname')}"
+        else:
+            data.pop("firstname", None)
+            data.pop("lastname", None)
+        return data
+
+
+class GenerateSerializer(serializers.Serializer):
     callback_url = serializers.URLField(required=False)
+    reference = serializers.CharField()
