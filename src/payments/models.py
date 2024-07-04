@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid1
 import requests
 from django.db import models
 
@@ -18,10 +18,10 @@ class Transaction(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            reference = uuid4().hex[:10]
+            reference = uuid1().hex[:10]
             qs = Transaction.objects.filter(reference=reference)
             while qs.exists():
-                reference = uuid4().hex[:10]
+                reference = uuid1().hex[:10]
                 qs = Transaction.objects.filter(reference=reference)
             self.reference = reference
         super().save(*args, **kwargs)
@@ -42,7 +42,7 @@ class Transaction(models.Model):
                 "email": self.email,
             },
             "customizations": {
-                "title": f"TLBC'24 (Reference: {self.reference})",
+                "title": "The Lord's Brethren Church (TLBC'24)",
                 "description": description,
                 "logo": config("LOGO_URL"),
             },
