@@ -5,7 +5,8 @@ from .views import (
     PartnerRegisterView,
     ParticipantAPIView,
     PartnerAPIView,
-    GenerateTicketPaymentAPIView,
+    SearchAPIView,
+    GeneratePaymentLinkAPIView,
 )
 
 app_name = "register"
@@ -17,9 +18,10 @@ urlpatterns = [
     ),
     path("partner/", PartnerRegisterView.as_view(), name="partner_register"),
     path("partner/<str:reference>/", PartnerAPIView.as_view(), name="partner"),
-    # path(
-    #     "ticket-payment/",
-    #     GenerateTicketPaymentAPIView.as_view(),
-    #     name="generate-ticket-payment",
-    # ),
+    path("search/<str:email>/", SearchAPIView.as_view(), name="search"),
+    path(
+        "generate-payment-link/",
+        GeneratePaymentLinkAPIView.as_view(),
+        name="generate-payment-link",
+    ),
 ]
