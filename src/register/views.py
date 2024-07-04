@@ -5,16 +5,18 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 
 
 from core.env import config
-from .models import Participant
+from .models import Participant, Partner
 from .serializers import (
-    RegisterSerializer,
+    ParticipantRegisterSerializer,
+    PartnerRegisterSerializer,
     ParticipantSerializer,
+    PartnerSerializer,
     GenerateTicketSerializer,
 )
 
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
+class ParticipantRegisterView(generics.CreateAPIView):
+    serializer_class = ParticipantRegisterSerializer
 
     @extend_schema(
         responses={
@@ -60,6 +62,51 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+class PartnerRegisterView(generics.CreateAPIView):
+    serializer_class = PartnerRegisterSerializer
+
+    @extend_schema(
+        responses={
+            201: inline_serializer(
+                name="RegistrationLink",
+                fields={
+                    "status": serializers.CharField(default="success"),
+                    "link": serializers.URLField(default=""),
+                    "reference": serializers.CharField(default="TLBC240001P"),
+                },
+            ),
+            424: inline_serializer(
+                name="RegistrationFailed",
+                fields={
+                    "status": serializers.CharField(default="failed"),
+                    "message": serializers.CharField(default="An error occurred"),
+                },
+            ),
+        }
+    )
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        callback_url = serializer.validated_data.get("callback_url")
+        amount = serializer.validated_data.get("amount")
+        currency = serializer.validated_data.get("currency")
+        partner = serializer.save()
+        link, reference = partner.generate_payment_link(
+            amount, currency, callback_url=callback_url
+        )
+        if not link:
+            response_data = {"status": "failed", "message": "An error occurred"}
+            return Response(
+                response_data,
+                status=status.HTTP_424_FAILED_DEPENDENCY,
+            )
+
+        return Response(
+            {"link": link, "status": "success", "reference": reference},
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class ParticipantAPIView(generics.RetrieveAPIView):
     queryset = Participant.objects.all()
     serializer_class = ParticipantSerializer
@@ -72,6 +119,24 @@ class ParticipantAPIView(generics.RetrieveAPIView):
     @extend_schema(
         responses={
             200: ParticipantSerializer,
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class PartnerAPIView(generics.RetrieveAPIView):
+    queryset = Partner.objects.all()
+    serializer_class = PartnerSerializer
+
+    def get_object(self):
+        return generics.get_object_or_404(
+            self.get_queryset(), transaction__reference=self.kwargs.get("reference")
+        )
+
+    @extend_schema(
+        responses={
+            200: PartnerSerializer,
         }
     )
     def get(self, request, *args, **kwargs):
