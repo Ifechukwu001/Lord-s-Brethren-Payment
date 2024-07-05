@@ -177,7 +177,10 @@ class GeneratePaymentLinkAPIView(generics.GenericAPIView):
         reference = serializer.validated_data.get("reference")
 
         if reference.endswith("P"):
-            partner = get_object_or_404(Partner, reference=reference)
+            partner = get_object_or_404(
+                Partner.objects.filter(transaction__is_success=False),
+                reference=reference,
+            )
             link, _ = partner.generate_payment_link(callback_url=callback_url)
             if not link:
                 return Response(
@@ -194,7 +197,10 @@ class GeneratePaymentLinkAPIView(generics.GenericAPIView):
                 status=status.HTTP_201_CREATED,
             )
         else:
-            participant = get_object_or_404(Participant, reference=reference)
+            participant = get_object_or_404(
+                Participant.objects.filter(transaction__is_success=False),
+                reference=reference,
+            )
             link, _ = participant.generate_payment_link(callback_url=callback_url)
             if not link:
                 return Response(
