@@ -1,14 +1,16 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, serializers, permissions
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter
 
 
 from core.env import config
 from .models import Participant, Partner
 from .serializers import (
     ParticipantRegisterSerializer,
+    ParticipantWithRefSerializer,
     PartnerRegisterSerializer,
+    PartnerWithRefSerializer,
     ParticipantSerializer,
     PartnerSerializer,
     SearchSerializer,
@@ -215,4 +217,70 @@ class GeneratePaymentLinkAPIView(generics.GenericAPIView):
                     "message": "Payment link generated successfully",
                 },
                 status=status.HTTP_201_CREATED,
+            )
+
+
+class AllPaymentDataAPIView(generics.GenericAPIView):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="type", type=str, enum=["partner", "participant"]),
+            OpenApiParameter(
+                name="paid",
+                type=bool,
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="AllPaymentData",
+                fields={
+                    "partners": PartnerWithRefSerializer(many=True),
+                    "participants": ParticipantWithRefSerializer(many=True),
+                },
+            ),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        has_paid = False
+        paid = self.request.query_params.get("paid")
+        print(paid, type(paid))
+        if (
+            (isinstance(paid, int) and int(paid) > 0)
+            or (isinstance(paid, str) and paid.lower() in ["true", "yes"])
+            or (isinstance(paid, bool) and paid)
+        ):
+            has_paid = True
+
+        if self.request.query_params.get("type") == "partner":
+            partners = Partner.objects.filter(transaction__is_success=has_paid)
+            serializer = PartnerWithRefSerializer(partners, many=True)
+            return Response(
+                {
+                    "partners": serializer.data,
+                    "participants": [],
+                },
+                status=status.HTTP_200_OK,
+            )
+        elif self.request.query_params.get("type") == "participant":
+            participants = Participant.objects.filter(transaction__is_success=has_paid)
+            serializer = ParticipantWithRefSerializer(participants, many=True)
+            return Response(
+                {
+                    "partners": [],
+                    "participants": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            partners = Partner.objects.filter(transaction__is_success=has_paid)
+            participants = Participant.objects.filter(transaction__is_success=has_paid)
+            partner_serializer = PartnerWithRefSerializer(partners, many=True)
+            participant_serializer = ParticipantWithRefSerializer(
+                participants, many=True
+            )
+            return Response(
+                {
+                    "partners": partner_serializer.data,
+                    "participants": participant_serializer.data,
+                },
+                status=status.HTTP_200_OK,
             )
