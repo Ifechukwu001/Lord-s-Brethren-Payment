@@ -7,6 +7,7 @@ from .views import (
     PartnerAPIView,
     SearchAPIView,
     GeneratePaymentLinkAPIView,
+    AllPaymentDataAPIView,
 )
 
 app_name = "register"
@@ -24,4 +25,5 @@ urlpatterns = [
         GeneratePaymentLinkAPIView.as_view(),
         name="generate-payment-link",
     ),
+    path("all-payment-data/", AllPaymentDataAPIView.as_view(), name="all-payment-data"),
 ]
