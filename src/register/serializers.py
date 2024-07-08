@@ -93,6 +93,11 @@ class ParticipantSerializer(serializers.ModelSerializer):
         ]
 
 
+class ParticipantWithRefSerializer(ParticipantSerializer):
+    class Meta(ParticipantSerializer.Meta):
+        fields = ParticipantSerializer.Meta.fields + ["reference"]
+
+
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
@@ -104,6 +109,11 @@ class PartnerSerializer(serializers.ModelSerializer):
             "state",
             "has_paid",
         ]
+
+
+class PartnerWithRefSerializer(PartnerSerializer):
+    class Meta(PartnerSerializer.Meta):
+        fields = PartnerSerializer.Meta.fields + ["reference"]
 
 
 class SearchSerializer(serializers.Serializer):
