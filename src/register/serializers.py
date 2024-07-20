@@ -28,6 +28,20 @@ class ParticipantRegisterSerializer(serializers.ModelSerializer):
             "callback_url",
         ]
 
+    def validate_email(self, value):
+        if Participant.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "Participant with this email already exists."
+            )
+        return value
+
+    def validate_phone(self, value):
+        if Participant.objects.filter(phone=value).exists():
+            raise serializers.ValidationError(
+                "Participant with this phone already exists."
+            )
+        return value
+
     def save(self):
         if "callback_url" in self.validated_data:
             self.validated_data.pop("callback_url")
