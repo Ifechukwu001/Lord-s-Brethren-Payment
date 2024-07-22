@@ -108,8 +108,17 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 
 class ParticipantWithRefSerializer(ParticipantSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        source="transaction.amount",
+        read_only=True,
+        coerce_to_string=False,
+    )
+    currency = serializers.CharField(source="transaction.currency", read_only=True)
+
     class Meta(ParticipantSerializer.Meta):
-        fields = ParticipantSerializer.Meta.fields + ["reference"]
+        fields = ParticipantSerializer.Meta.fields + ["reference", "amount", "currency"]
 
 
 class PartnerSerializer(serializers.ModelSerializer):
@@ -126,8 +135,17 @@ class PartnerSerializer(serializers.ModelSerializer):
 
 
 class PartnerWithRefSerializer(PartnerSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        source="transaction.amount",
+        read_only=True,
+        coerce_to_string=False,
+    )
+    currency = serializers.CharField(source="transaction.currency", read_only=True)
+
     class Meta(PartnerSerializer.Meta):
-        fields = PartnerSerializer.Meta.fields + ["reference"]
+        fields = PartnerSerializer.Meta.fields + ["reference", "amount", "currency"]
 
 
 class SearchSerializer(serializers.Serializer):

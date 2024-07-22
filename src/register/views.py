@@ -242,7 +242,6 @@ class AllPaymentDataAPIView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         has_paid = False
         paid = self.request.query_params.get("paid")
-        print(paid, type(paid))
         if (
             (isinstance(paid, int) and int(paid) > 0)
             or (isinstance(paid, str) and paid.lower() in ["true", "yes"])
