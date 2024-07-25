@@ -92,7 +92,7 @@ class TransactionWebHook(generics.GenericAPIView):
             payment_queue.put(transaction)
 
         elif response_data.get("status") == "error":
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         return Response(status=status.HTTP_200_OK)
 
