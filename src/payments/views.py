@@ -67,13 +67,15 @@ class TransactionWebHook(generics.GenericAPIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         logger.info(request.data)
-        print(request.data)
+        print("Incoming data:", request.data)
 
-        transaction_id = request.data.get("id")
+        data = request.data.get("data")
+        transaction_id = data.get("id")
         url = f"{config('FLUTTERWAVE_BASE_URL')}/transactions/{transaction_id}/verify"
         headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
 
         response = requests.get(url, headers=headers)
+        print("Verify Response:", response.request.url, response.text)
         response_data = response.json()
 
         if response_data.get("status") == "success":
