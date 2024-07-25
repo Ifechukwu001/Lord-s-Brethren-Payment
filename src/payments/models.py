@@ -19,10 +19,19 @@ class Transaction(models.Model):
     def save(self, *args, **kwargs):
         if not self.reference:
             reference = uuid1().hex[:10]
+
+            url = f"{config('FLUTTERWAVE_BASE_URL')}/transactions/verify_by_reference/"
+            headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
+            response = requests.get(url, params={"tx_ref": reference}, headers=headers)
+
             qs = Transaction.objects.filter(reference=reference)
-            while qs.exists():
+            while qs.exists() or response.status_code == 200:
                 reference = uuid1().hex[:10]
                 qs = Transaction.objects.filter(reference=reference)
+
+                response = requests.get(
+                    url, params={"tx_ref": reference}, headers=headers
+                )
             self.reference = reference
         super().save(*args, **kwargs)
 
